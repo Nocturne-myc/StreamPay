@@ -1,0 +1,360 @@
+[
+  {
+    "id": "T-C01",
+    "purpose": "Prefunded issuance, IDs, events and liability effects",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow.",
+    "steps": [
+      "Check usable initial issuance and decimals.",
+      "Create deposits 1000 and 7.",
+      "Inspect creation event, IDs, escrow/sender balances and liability."
+    ],
+    "expected": "Six decimals; initial supply/sender balance 1000000000000; IDs 1/2; matching event; escrow/liability 1007; sender 999999998993."
+  },
+  {
+    "id": "T-C02",
+    "purpose": "Reject unusable token interfaces",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow.",
+    "steps": [
+      "Deploy StreamPay with zero and codeless address.",
+      "Install reverting and 1-byte-return balanceOf runtime fixtures and deploy against each."
+    ],
+    "expected": "All four deployments revert InvalidToken(address), including malformed/failing probes."
+  },
+  {
+    "id": "T-C03",
+    "purpose": "Exact creation timestamp and lifecycle boundaries",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow.",
+    "steps": [
+      "Create with start equal to transaction timestamp.",
+      "Create 100 over 10 seconds and query at s-1,s,s+1,e-1,e."
+    ],
+    "expected": "At-start creation succeeds. Boundary statuses Scheduled,Active,Active,Active,Ended; accrued 0,0,10,90,100; terminal withdrawable 100, refundable 0."
+  },
+  {
+    "id": "T-C04",
+    "purpose": "Reject invalid parties, amount and schedule without accounting changes",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow.",
+    "steps": [
+      "Try zero/sender/escrow recipient.",
+      "Try deposit zero; equal/reversed times and past start.",
+      "Check balances, liability and next ID."
+    ],
+    "expected": "InvalidRecipient for three addresses; InvalidAmount for zero; InvalidSchedule for three invalid schedules; liability/balance 0 and next ID 1."
+  },
+  {
+    "id": "T-C05",
+    "purpose": "Funding failures allocate no stream",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow.",
+    "steps": [
+      "Set allowance zero and attempt deposit 100.",
+      "Restore allowance; attempt supply+1.",
+      "Check state and sender balance."
+    ],
+    "expected": "ERC20InsufficientAllowance / ERC20InsufficientBalance; ID 1 and liability 0; sender funds unchanged."
+  },
+  {
+    "id": "T-C06",
+    "purpose": "No phantom default query records",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Exactly one stream exists.",
+    "steps": "Call getStream/accrued/withdrawable/refundable/status on IDs 0 and 2.",
+    "expected": "All ten queries revert StreamNotFound(id)."
+  },
+  {
+    "id": "T-S01",
+    "purpose": "Partial and final recipient payments",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100 over 100 seconds.",
+    "steps": [
+      "At +40 withdraw 25.",
+      "At end withdraw final 75.",
+      "Check events, balances, withdrawn, status and liability."
+    ],
+    "expected": "First availability 15, recipient 25, escrow/liability 75; final recipient/withdrawn 100, liability 0 and Ended."
+  },
+  {
+    "id": "T-S02",
+    "purpose": "Enforce settlement roles",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Active deposit 1000.",
+    "steps": [
+      "Sender and stranger try withdraw.",
+      "Recipient and stranger try cancel/refund.",
+      "Inspect balances and cancellation flag."
+    ],
+    "expected": "Six caller-specific UnauthorizedRecipient/UnauthorizedSender errors; no balances, liabilities or cancellation changes."
+  },
+  {
+    "id": "T-S03",
+    "purpose": "Bound positive recipient claims",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100 over 100 seconds.",
+    "steps": [
+      "At +20 request zero.",
+      "At +21 request 22.",
+      "Inspect stream and balances."
+    ],
+    "expected": "InvalidAmount then InsufficientWithdrawable(22,21); withdrawn 0 and escrow/liability 100."
+  },
+  {
+    "id": "T-S04",
+    "purpose": "No phantom default mutation records",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. No stream allocated.",
+    "steps": "Try withdraw/cancel/refund on IDs 0 and 1.",
+    "expected": "All six calls revert StreamNotFound(id); liability 0."
+  },
+  {
+    "id": "T-S05",
+    "purpose": "Pre-start cancellation and single full refund",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Scheduled deposit 7.",
+    "steps": [
+      "Cancel before start; compare balances.",
+      "Claim refund twice; inspect event and status."
+    ],
+    "expected": "Cancellation freezes accrued 0 and refunds 7 without transfer; first refund pays 7, second NoRefund; liability 0 and Cancelled."
+  },
+  {
+    "id": "T-S06",
+    "purpose": "Cancellation at the exact start boundary",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100.",
+    "steps": "Mine cancellation transaction exactly at start.",
+    "expected": "Accrued 0, refundable 100, liability remains 100."
+  },
+  {
+    "id": "T-S07",
+    "purpose": "Frozen recipient protection and no transfer on cancellation",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100 / duration 100.",
+    "steps": [
+      "Cancel at +40; compare balances.",
+      "Advance past original end+100 and query."
+    ],
+    "expected": "40 earned, 60 refundable; escrow/liability 100 unchanged by cancellation; shares remain frozen and status Cancelled."
+  },
+  {
+    "id": "T-S08",
+    "purpose": "Irreversible cancellation strictly before end",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Two deposits 1000.",
+    "steps": [
+      "Cancel one then repeat cancellation.",
+      "Attempt other cancellation exactly at end."
+    ],
+    "expected": "AlreadyCancelled and StreamAlreadyEnded respectively; second stays uncancelled; aggregate liabilities 2000."
+  },
+  {
+    "id": "T-S09",
+    "purpose": "No refund before cancellation",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Uncancelled deposit 1000.",
+    "steps": "Sender requests refund before cancellation.",
+    "expected": "NoRefund; escrow and liabilities remain 1000, no balance changes."
+  },
+  {
+    "id": "T-S10",
+    "purpose": "Independent sender-first claims after partial withdrawal",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100 / duration 100.",
+    "steps": [
+      "Pay 10 at +20.",
+      "Cancel at +40.",
+      "Claim recipient remainder 30 and sender refund 60 in sender-first order.",
+      "Try duplicate refund and excess recipient payment."
+    ],
+    "expected": "Before claims liability 90; final withdrawn 40/refunded 60 and liability 0; recipient 40, sender net loss 40; Cancelled persists; duplicate claims fail."
+  },
+  {
+    "id": "T-S11",
+    "purpose": "Independent recipient-first claims after partial withdrawal",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 100 / duration 100.",
+    "steps": [
+      "Pay 10 at +20.",
+      "Cancel at +40.",
+      "Claim recipient remainder 30 and sender refund 60 in recipient-first order.",
+      "Try duplicate refund and excess recipient payment."
+    ],
+    "expected": "Before claims liability 90; final withdrawn 40/refunded 60 and liability 0; recipient 40, sender net loss 40; Cancelled persists; duplicate claims fail."
+  },
+  {
+    "id": "T-S12",
+    "purpose": "Cumulative rounding and complete terminal payout",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Deposit 7 / duration 5.",
+    "steps": [
+      "Query at offsets 0,1,2,4,5.",
+      "Withdraw all seven at end."
+    ],
+    "expected": "Accrued literal sequence [0,1,2,5,7]; recipient 7, escrow/liability 0."
+  },
+  {
+    "id": "T-A01",
+    "purpose": "Reject non-exact and decreasing incoming balance deltas",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Existing donation 10.",
+    "steps": [
+      "Configure short receipt, then decreasing escrow balance.",
+      "Attempt deposit 100 and compare full snapshots."
+    ],
+    "expected": "InexactFunding(100,10,109) and InexactFunding(100,10,9); token balances/supply/allowance, ID and liability roll back."
+  },
+  {
+    "id": "T-A02",
+    "purpose": "Atomic false/reverting transferFrom failures",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved.",
+    "steps": [
+      "Configure transfer-then-false incoming mode and try funding.",
+      "Configure reverting incoming mode and try funding.",
+      "Compare snapshots."
+    ],
+    "expected": "SafeERC20FailedOperation and FixtureTransferRejected; balances/supply/allowance, next ID and liabilities unchanged."
+  },
+  {
+    "id": "T-A03",
+    "purpose": "Atomic false/reverting outgoing payments",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Ended deposit 100.",
+    "steps": [
+      "Request 30 with transfer-then-false mode, then reverting mode.",
+      "Compare stream/token/accounting snapshots.",
+      "Enable exact transfer and claim 100."
+    ],
+    "expected": "Both failures roll back; final payment 100 clears liability."
+  },
+  {
+    "id": "T-A04",
+    "purpose": "Recipient failure cannot block sender refund",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Deposit 100 / duration 100; recipient transfers blocked.",
+    "steps": [
+      "Cancel at +40.",
+      "Attempt recipient payment 40.",
+      "After its failure claim sender refund."
+    ],
+    "expected": "Cancellation succeeds; failed recipient payment rolls back; sender receives 60; recipient entitlement/liability remain 40."
+  },
+  {
+    "id": "T-A05",
+    "purpose": "Sender failure cannot block earned recipient payment",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Deposit 100 cancelled at +40.",
+    "steps": [
+      "Configure transfer-then-false for sender.",
+      "Try refund 60 and compare snapshot.",
+      "Claim recipient share 40."
+    ],
+    "expected": "Failed refund rolls back; recipient receives 40 independently; refund/liability remain 60."
+  },
+  {
+    "id": "T-A06",
+    "purpose": "Tiny terminal payout and zero rejection",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved.",
+    "steps": [
+      "Try deposit zero.",
+      "Create deposit 1 / duration 3.",
+      "Query at end-1 and claim at end."
+    ],
+    "expected": "Zero InvalidAmount; accrual 0 at end-1; exactly one paid at end; liability 0."
+  },
+  {
+    "id": "T-A07",
+    "purpose": "Full-precision arithmetic outside fixed-supply demonstration range",
+    "preconditions": "Local large-supply fixture of 2**255+7, explicitly outside assessed token support.",
+    "steps": [
+      "Deposit 2**255+7 over 100 seconds.",
+      "At +50 withdraw literal 2**254+3.",
+      "At end claim remainder."
+    ],
+    "expected": "No multiplication overflow; exact midpoint 2**254+3; final recipient receives full deposit and liability 0."
+  },
+  {
+    "id": "T-A08",
+    "purpose": "Guard authorized nested create",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Token actor has valid balance, approval and future schedule.",
+    "steps": [
+      "Configure caught outgoing callback invoking create.",
+      "Make outer recipient withdrawal 10.",
+      "Check exact guard selector, no duplicate effects and nested record unchanged.",
+      "Disable callback and execute identical actor/data."
+    ],
+    "expected": "Nested rejection is ReentrancyGuardReentrantCall selector 0x3ee5aeb5; outer pays 10 once; identical nested call later succeeds, proving valid role and entitlement."
+  },
+  {
+    "id": "T-A09",
+    "purpose": "Guard authorized nested cancel",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Token actor has valid sender role and cancellable stream.",
+    "steps": [
+      "Configure caught outgoing callback invoking cancel.",
+      "Make outer recipient withdrawal 10.",
+      "Check exact guard selector, no duplicate effects and nested record unchanged.",
+      "Disable callback and execute identical actor/data."
+    ],
+    "expected": "Nested rejection is ReentrancyGuardReentrantCall selector 0x3ee5aeb5; outer pays 10 once; identical nested call later succeeds, proving valid role and entitlement."
+  },
+  {
+    "id": "T-A10",
+    "purpose": "Guard authorized nested withdraw",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Token actor has valid recipient role and positive withdrawable entitlement.",
+    "steps": [
+      "Configure caught outgoing callback invoking withdraw.",
+      "Make outer recipient withdrawal 10.",
+      "Check exact guard selector, no duplicate effects and nested record unchanged.",
+      "Disable callback and execute identical actor/data."
+    ],
+    "expected": "Nested rejection is ReentrancyGuardReentrantCall selector 0x3ee5aeb5; outer pays 10 once; identical nested call later succeeds, proving valid role and entitlement."
+  },
+  {
+    "id": "T-A11",
+    "purpose": "Guard authorized nested refund",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Token actor has valid sender role and positive cancellation refund.",
+    "steps": [
+      "Configure caught outgoing callback invoking refund.",
+      "Make outer recipient withdrawal 10.",
+      "Check exact guard selector, no duplicate effects and nested record unchanged.",
+      "Disable callback and execute identical actor/data."
+    ],
+    "expected": "Nested rejection is ReentrancyGuardReentrantCall selector 0x3ee5aeb5; outer pays 10 once; identical nested call later succeeds, proving valid role and entitlement."
+  },
+  {
+    "id": "T-A12",
+    "purpose": "Propagated authorized callback failure rolls back all effects",
+    "preconditions": "Local configurable AdversarialToken fixture, outside assessed-token support, and StreamPay; sender funded and approved. Token actor is recipient of separate stream with positive entitlement.",
+    "steps": [
+      "Configure propagated nested withdrawal.",
+      "Try outer withdrawal 10 and compare both streams/balances/liability.",
+      "Disable callback and make same actor claim 1."
+    ],
+    "expected": "Outer reverts ReentrancyGuardReentrantCall; all recorded effects roll back; later actor withdrawal pays 1."
+  },
+  {
+    "id": "T-A13",
+    "purpose": "Four-stream isolation and donation surplus",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Four streams 7/5s,100/100s,1/3s,9/9s with common start.",
+    "steps": [
+      "Pay 2 from first stream at +2.",
+      "Donate 31.",
+      "Cancel second stream at +40, refund 60.",
+      "Claim remaining 5,40,1,9 and attempt extra claims."
+    ],
+    "expected": "Recipient total 57, refund 60, aggregate liability 0; donated 31 remains escrow surplus with no stream entitlement."
+  },
+  {
+    "id": "T-A14",
+    "purpose": "Independent intended-action accounting campaign seed 17",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Four streams of 101,7,1,999, two senders and two recipients; independent BigInt model.",
+    "steps": [
+      "Run seeded xorshift32 campaign of exactly 80 actions: time advance, valid/invalid claim, cancellation, refund, donation.",
+      "Compare each query, storage claim fields, per-stream conservation, account balances, aggregate liabilities and holdings after every action.",
+      "Save actual action rows and observations to evidence/random-traces.json."
+    ],
+    "expected": "Every action matches independently maintained expected results; expected invalid actions revert with exact errors; all four stream invariants and holdings = liabilities + donations hold after every step; unexpected revert fails with seed/action trace."
+  },
+  {
+    "id": "T-A15",
+    "purpose": "Independent intended-action accounting campaign seed 5760",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Four streams of 101,7,1,999, two senders and two recipients; independent BigInt model.",
+    "steps": [
+      "Run seeded xorshift32 campaign of exactly 80 actions: time advance, valid/invalid claim, cancellation, refund, donation.",
+      "Compare each query, storage claim fields, per-stream conservation, account balances, aggregate liabilities and holdings after every action.",
+      "Save actual action rows and observations to evidence/random-traces.json."
+    ],
+    "expected": "Every action matches independently maintained expected results; expected invalid actions revert with exact errors; all four stream invariants and holdings = liabilities + donations hold after every step; unexpected revert fails with seed/action trace."
+  },
+  {
+    "id": "T-A16",
+    "purpose": "Independent intended-action accounting campaign seed 21346213",
+    "preconditions": "Fresh local MockStreamToken and StreamPay, funded sender, recipient and unrelated accounts; sender has approved escrow. Four streams of 101,7,1,999, two senders and two recipients; independent BigInt model.",
+    "steps": [
+      "Run seeded xorshift32 campaign of exactly 80 actions: time advance, valid/invalid claim, cancellation, refund, donation.",
+      "Compare each query, storage claim fields, per-stream conservation, account balances, aggregate liabilities and holdings after every action.",
+      "Save actual action rows and observations to evidence/random-traces.json."
+    ],
+    "expected": "Every action matches independently maintained expected results; expected invalid actions revert with exact errors; all four stream invariants and holdings = liabilities + donations hold after every step; unexpected revert fails with seed/action trace."
+  }
+]

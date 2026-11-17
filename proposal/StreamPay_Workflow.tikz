@@ -1,0 +1,28 @@
+% Shared by the Proposal and Final Project Report.
+\begin{tikzpicture}[
+  workflow node/.style={
+    draw=black!70, rounded corners=1.3pt, line width=0.45pt,
+    align=center, inner xsep=3pt, inner ysep=2.3pt,
+    font=\footnotesize
+  },
+  workflow arrow/.style={-{Stealth[length=1.65mm,width=1.2mm]}, line width=0.55pt}
+]
+  \node[workflow node, minimum width=35mm, fill=black!5] (fund) at (-5.3,0)
+    {Sender approves, then creates\\Escrow locks full deposit \(D\)};
+  \node[workflow node, minimum width=33mm] (accrue) at (-0.65,0.50)
+    {Uncancelled stream\\Accrues by elapsed time};
+  \node[workflow node, minimum width=33mm] (cancel) at (-0.65,-0.50)
+    {Sender cancels before \(e\)\\Escrow freezes \(V(c)\)};
+  \node[workflow node, minimum width=64mm] (normal) at (4.65,0.50)
+    {Recipient withdraws\\during or after accrual};
+  \node[workflow node, minimum width=64mm, fill=black!5] (claims) at (4.65,-0.50)
+    {Independent claims\\Recipient \(V(c)-W\) \enspace Sender \(D-V(c)-R\)};
+
+  \coordinate (split) at (-2.80,0);
+  \draw[line width=0.55pt] (fund.east) -- (split);
+  \fill (split) circle[radius=0.65pt];
+  \draw[workflow arrow] (split) |- (accrue.west);
+  \draw[workflow arrow] (split) |- (cancel.west);
+  \draw[workflow arrow] (accrue.east) -- (normal.west);
+  \draw[workflow arrow] (cancel.east) -- (claims.west);
+\end{tikzpicture}

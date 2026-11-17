@@ -1,0 +1,114 @@
+[
+  {
+    "id": "T-D01",
+    "purpose": "Reject missing deployment configuration",
+    "preconditions": "No configured public credentials; no provider broadcasts",
+    "steps": "Supply absent RPC, absent key and malformed key to configuration guard",
+    "expected": "Each configuration rejected without secret values in errors"
+  },
+  {
+    "id": "T-D02",
+    "purpose": "Separate deployment and verification prerequisites",
+    "preconditions": "Synthetic valid-shape RPC and key; absent explorer API key",
+    "steps": "Validate deployment configuration, then request verification configuration",
+    "expected": "Deployment configuration accepted; verification configuration rejected"
+  },
+  {
+    "id": "T-D03",
+    "purpose": "Stop wrong-network deployment before broadcast",
+    "preconditions": "Stub provider reports 31337; broadcast counter zero",
+    "steps": "Run Sepolia guard; compare with provider reporting 11155111",
+    "expected": "31337 rejected with no writes; 11155111 accepted"
+  },
+  {
+    "id": "T-D04",
+    "purpose": "Validate a consistent deployment manifest",
+    "preconditions": "Synthetic two-contract manifest with matching sources and code",
+    "steps": "Validate settings, source hashes, runtime hashes and constructor linkage",
+    "expected": "Matching manifest accepted"
+  },
+  {
+    "id": "T-D05",
+    "purpose": "Detect changes to deployment inputs",
+    "preconditions": "Manifest records original source and lockfile hashes",
+    "steps": "Change source hash and lockfile hash independently",
+    "expected": "Both mismatches rejected"
+  },
+  {
+    "id": "T-D06",
+    "purpose": "Detect absent or changed runtime code",
+    "preconditions": "Manifest records runtime hashes",
+    "steps": "Replace escrow code with empty and altered bytecode",
+    "expected": "Both code variants rejected"
+  },
+  {
+    "id": "T-D07",
+    "purpose": "Reject incomplete or inconsistent public evidence",
+    "preconditions": "A valid synthetic manifest is cloned per case",
+    "steps": "Change status, chain, record count, constructor token and compiler runs",
+    "expected": "All five malformed variants rejected"
+  },
+  {
+    "id": "T-D08",
+    "purpose": "Retain partial deployment evidence",
+    "preconditions": "Fresh temporary manifest; no public calls",
+    "steps": "Persist first confirmed receipt; simulate second-contract failure; read file",
+    "expected": "First receipt remains recorded; incomplete status retained"
+  },
+  {
+    "id": "T-D09",
+    "purpose": "Avoid configured secret leakage",
+    "preconditions": "Synthetic key, API key and private RPC URL in test environment object",
+    "steps": "Redact an error string containing all three values",
+    "expected": "No original configured value remains"
+  },
+  {
+    "id": "T-D10",
+    "purpose": "Accept semantically equivalent build metadata",
+    "preconditions": "A valid manifest with reordered compiler object keys",
+    "steps": "Validate equivalent optimizer/version/EVM values after JSON key reordering",
+    "expected": "Valid metadata accepted independent of serialization key order"
+  },
+  {
+    "id": "T-D11",
+    "purpose": "Bind runtime validation to the compiled source",
+    "preconditions": "Current source hashes but unrelated always-reverting code with matching manifest hashes",
+    "steps": "Validate against independent local compiled runtimes",
+    "expected": "Reject unrelated runtime despite internally consistent manifest"
+  },
+  {
+    "id": "T-D12",
+    "purpose": "Persist confirmed fields before metadata enrichment",
+    "preconditions": "Fresh temporary manifest and confirmed receipt",
+    "steps": "Fail the metadata callback after persistence",
+    "expected": "Receipt hash and block remain saved"
+  },
+  {
+    "id": "T-D13",
+    "purpose": "Preserve existing public deployment evidence",
+    "preconditions": "Empty deferred marker, then a prior partial deployment manifest",
+    "steps": "Check initial deployment permission and retry permission",
+    "expected": "Empty deferred marker accepted; prior record rejected and unchanged"
+  },
+  {
+    "id": "T-D14",
+    "purpose": "Check metadata failure through deployment orchestration",
+    "preconditions": "Mock public runtime confirms deployment then fails metadata RPC; isolated file",
+    "steps": "Run actual deploy orchestration with synthetic configuration",
+    "expected": "Confirmed address/hash/block preserved, metadata incomplete, confirmed count one"
+  },
+  {
+    "id": "T-D15",
+    "purpose": "Prevent destructive public retry through actual orchestration",
+    "preconditions": "Prior partial manifest and mock public runtime",
+    "steps": "Invoke deploy again and count contract factory calls",
+    "expected": "Reject before factory/broadcast; original manifest byte-for-byte intact"
+  },
+  {
+    "id": "T-D16",
+    "purpose": "Match actual compiled code including immutable token binding",
+    "preconditions": "Real local deployments of both assessed contracts and normal compiler artifacts",
+    "steps": "Match real compiled runtime, supply a wrong observed token, and alter one immutable occurrence while updating its manifest hash",
+    "expected": "Real compiled deployment accepted; wrong getter binding and single-site immutable alteration rejected"
+  }
+]

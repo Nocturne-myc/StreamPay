@@ -1,0 +1,37 @@
+{
+  "name": "streampay-csit5760-21346213",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local demonstration of prepaid token streaming and independent cancellation claims",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "node scripts/coverage.cjs",
+    "test:record": "node scripts/run-tests.cjs",
+    "matrix": "node scripts/test-matrix.cjs",
+    "demo": "hardhat run scripts/demo.cjs --network hardhat",
+    "deploy:local": "hardhat run scripts/deploy.cjs --network localhost",
+    "interact:local": "hardhat run scripts/interact.cjs --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.cjs --network sepolia",
+    "verify:sepolia": "hardhat run scripts/verify.cjs --network sepolia",
+    "interact:sepolia": "hardhat run scripts/interact.cjs --network sepolia",
+    "mutation": "node scripts/mutation-check.cjs",
+    "package": "node scripts/package.cjs"
+  },
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "2.1.0",
+    "@nomicfoundation/hardhat-ethers": "3.1.0",
+    "@nomicfoundation/hardhat-network-helpers": "1.1.2",
+    "@nomicfoundation/hardhat-verify": "2.1.3",
+    "@openzeppelin/contracts": "5.4.0",
+    "chai": "4.5.0",
+    "ethers": "6.14.0",
+    "hardhat": "2.26.3",
+    "solc": "0.8.28",
+    "solidity-coverage": "0.8.16"
+  },
+  "packageManager": "pnpm@11.25.0"
+}

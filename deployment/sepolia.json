@@ -1,0 +1,67 @@
+{
+  "status": "verified",
+  "network": "sepolia",
+  "chainId": 11155111,
+  "startedAt": "2026-11-16T18:40:17.004Z",
+  "compiler": {
+    "version": "0.8.28",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "shanghai"
+  },
+  "compilerLongVersion": "0.8.28+commit.7893614a.Emscripten.clang",
+  "sourceHashes": {
+    "contracts/MockStreamToken.sol": "6aee5320de38351b7f86e68105fbc560c55f140a5ded95cc7f088cab56147340",
+    "contracts/StreamPay.sol": "27e439c797c4e977607fde9e4ecbab9c6188700b7e9f521f644e1d094e7babe6",
+    "hardhat.config.cjs": "6069b060bd33df74a5771ad0ab2f5869b83c793cb2c3e8ecfd73fa290cb4dc26",
+    "package.json": "da9e29ba7d0e50c2e247bb7e453a8de42a8f350b9ea16306a91a4395fc9e97b5",
+    "pnpm-lock.yaml": "00924f2c44c833858b248e3f0760581cc4b903a340a18a5958ea1dcb1404380a"
+  },
+  "node": "v24.22.1",
+  "hardhat": "2.26.3",
+  "contracts": [
+    {
+      "name": "MockStreamToken",
+      "address": "0x61928f9a74879CeE86D2434D65619E18E8c40912",
+      "deployer": "0x1844c9D82E30a4DE34b4891DbD37Ac51Ba4FF8db",
+      "constructorArguments": [],
+      "transactionHash": "0x3f80fea19978d222d5d196fe436abc3c2fd27abddcecdec1caa4a95932c909db",
+      "blockNumber": 12149158,
+      "blockTimestamp": 1794854436,
+      "gasUsed": "3462698",
+      "runtimeCodeSha256": "9a581152afc67075244ee34f5af5d6862ff3ca87b4fe080e8bab3bb4c7ccd816",
+      "explorerUrl": "https://sepolia.etherscan.io/address/0x61928f9a74879CeE86D2434D65619E18E8c40912",
+      "verification": {
+        "status": "verified",
+        "checkedAt": "2026-11-16T18:46:32.494Z",
+        "response": "Pass - Verified",
+        "verifiedSourceUrl": "https://sepolia.etherscan.io/address/0x61928f9a74879CeE86D2434D65619E18E8c40912#code"
+      },
+      "metadataStatus": "complete"
+    },
+    {
+      "name": "StreamPay",
+      "address": "0x608E8C677C9Ea162dd776E9a35c4c3eE8323188A",
+      "deployer": "0x1844c9D82E30a4DE34b4891DbD37Ac51Ba4FF8db",
+      "constructorArguments": [
+        "0x61928f9a74879CeE86D2434D65619E18E8c40912"
+      ],
+      "transactionHash": "0x11b604337b648f9e110a546ad21bcde5dae0b26980d7fbd06c5a3193157d5550",
+      "blockNumber": 12149159,
+      "blockTimestamp": 1794854448,
+      "gasUsed": "6610393",
+      "runtimeCodeSha256": "19abd5f3a76c1bf213b33d4a9ae5b21ee52c09562cec219bb2f956818d0e7ef1",
+      "explorerUrl": "https://sepolia.etherscan.io/address/0x608E8C677C9Ea162dd776E9a35c4c3eE8323188A",
+      "verification": {
+        "status": "verified",
+        "checkedAt": "2026-11-16T18:49:22.138Z",
+        "response": "Pass - Verified",
+        "verifiedSourceUrl": "https://sepolia.etherscan.io/address/0x608E8C677C9Ea162dd776E9a35c4c3eE8323188A#code"
+      },
+      "metadataStatus": "complete"
+    }
+  ],
+  "completedAt": "2026-11-16T18:40:50.076Z"
+}
