@@ -59,7 +59,7 @@
 \addcontentsline{toc}{chapter}{Abstract}
 StreamPay handles short-term payment agreements with a fixed budget and a time-based schedule. The sender funds an Ethereum escrow at creation. The recipient can withdraw accrued tokens in parts. If the sender cancels, the contract freezes accrual at the cancellation block and reserves the unearned balance for a refund. Each party claims its share separately. The contract uses a fixed demonstration token and tracks the amount owed across streams.
 
-Local validation produced 50 passing tests: 34 contract cases and 16 deployment-tooling cases. Three deterministic campaigns checked 240 actions against an independent integer model. Slither reported five Low timestamp findings and one Informational finding in the assessed scope. Three deployment-tooling fixes passed regression checks. A clean copy compiled and passed its tests after a frozen offline installation. The local demonstration settled a stream at its scheduled end and another after cancellation. The cancellation froze 280,000 raw units for the recipient and reserved 420,000 for the sender. Both accounts collected their shares through separate transactions, reducing the escrow balance and liability to zero.
+Local validation produced 50 passing tests: 34 contract cases and 16 deployment-tooling cases. Three deterministic campaigns checked 240 actions against an independent integer model. Slither reported five Low timestamp findings and one Informational finding in the assessed scope. Three deployment-tooling fixes passed regression checks. The local demonstration settled a stream at its scheduled end and another after cancellation. The cancellation froze 280,000 raw units for the recipient and reserved 420,000 for the sender. Both accounts collected their shares through separate transactions, reducing the escrow balance and liability to zero.
 
 Both contracts were deployed to Ethereum Sepolia and their source code was verified on Etherscan. The functional tests and settlement demonstration ran on the local Hardhat network.
 
@@ -319,13 +319,11 @@ Cancelled recipient claim & 78238 & Sender refund & 68524\\
 
 The table reports gas used by the local transactions.
 
-\file{evidence/reproducibility.json} records a passed clean-source-copy run: frozen offline installation, compilation, all 50 tests and the demonstration each exited zero. The installation used the existing pnpm store and metadata cache.
-
 \chapter{Smart Contract Security Audit}
 \section{Audit Scope and Methodology}
 The assessed application scope is \file{contracts/StreamPay.sol} and \file{contracts/MockStreamToken.sol}, with deployment and verification scripts reviewed as supporting tooling. The review used Slither 0.11.3, source inspection, and local contract and tooling tests.
 
-Slither's retained output reports successful analysis of 17 compiled contracts with 100 detectors, after filtering dependency and test-fixture findings. Its JSON reports success and six findings in scope. The text retains a configuration-discovery warning concerning unavailable \texttt{npx}; explicit artifact/cache paths supplied the assessed build. The successful invocation and environment are recorded in \file{audit/security-review.md}; initial unsuccessful setup attempts remain separate. No High or Medium findings were reported in this filtered analyzer result; that statement is limited to this tool and scope.
+Slither analyzed 17 compiled contracts with 100 detectors. After filtering dependencies and test fixtures, it reported five Low findings and one Informational finding. The analysis command and the interpretation are in \file{audit/security-review.md}.
 
 \section{Findings Summary}
 \begingroup\small
@@ -349,8 +347,9 @@ R3 & Retrying public deployment could overwrite prior records and lose evidence 
 \bottomrule
 \end{tabularx}\endgroup
 
-The tooling regression logs record failures before the fixes and passes after them.
+The executed matrix records the outcomes of regression cases T-D11 through T-D16.
 
+\clearpage
 \section{Manual Security Review}
 Authorization checks bind every claim and cancellation to the fixed party. Positive and bounded claims, cumulative ledgers and one-time cancellation reject repeated collection. Cancelled accrual is frozen before later claims. The supported token balance delta is checked before allocating IDs; liabilities change only with successful funding or payout. The independent model and four-stream cases check conservation and donation surplus.
 
@@ -360,7 +359,7 @@ Block time and transaction ordering affect the cancellation split. Parties must 
 
 \chapter{Conclusion and Future Work}
 \section{Conclusion}
-StreamPay implements prepaid token streaming and cancellation settlement. Both Sepolia deployments passed Etherscan source verification. The recipient's accrued share is preserved at cancellation, sender refunds are separate, and stream liabilities remain inspectable. The retained runs show 50 passing tests, 240 reference-model actions and successful offline clean-copy reproduction. The local demonstration also records complete settlement and measured transaction gas.
+StreamPay implements prepaid token streaming and cancellation settlement. Both Sepolia deployments passed Etherscan source verification. The recipient's accrued share is preserved at cancellation, sender refunds are separate, and stream liabilities remain inspectable. The retained runs show 50 passing tests and 240 reference-model actions. The local demonstration records complete settlement and measured transaction gas.
 
 The security work interprets six Slither findings and documents three corrected tooling issues. The RPC failure in R2 showed why the script saves each confirmed receipt before requesting extra metadata. Cancellation shares depend on the block timestamp at confirmation, and the escrow supports one fixed test token.
 
@@ -401,7 +400,7 @@ See \file{contracts/MockStreamToken.sol} and \file{contracts/StreamPay.sol} for 
 The files \file{creation.test.cjs}, \file{settlement.test.cjs}, \file{adversarial.test.cjs} and \file{accounting.test.cjs} under \file{tests/} contain the 34 contract cases. \file{tests/tooling.test.cjs} supplies 16 tooling cases. \file{tests/support/reference.cjs} implements the independent integer model. Expected/actual case records are in \file{docs/test-matrix.md}; raw results, logs and all campaign steps are in \file{evidence/test-results.json}, \file{evidence/tests.txt} and \file{evidence/random-traces.json}.\par\endgroup
 
 \chapter{Security-Analysis Output}
-Raw analyzer output is retained in \file{audit/slither.json} and \file{audit/slither.txt}, with initial setup output kept separately. \file{audit/security-review.md} records the command and interpretation; \file{audit/code-review.md} records the tooling findings, corrections and scoped closure. Tooling regressions and their failing-before/passing-after logs are under \file{evidence/tooling-*.txt}.
+\file{audit/slither.json} contains the analyzer output. \file{audit/security-review.md} records the command, findings and fixes. Cases T-D11 through T-D16 in \file{docs/test-matrix.md} record the tooling retests.
 
 \chapter{Etherscan and Transaction Evidence}
 \label{app:sepolia-evidence}
