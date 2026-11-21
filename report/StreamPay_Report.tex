@@ -1,16 +1,23 @@
 % Adapted from the supplied CSIT5760 Final Project Report Template.
 % Local tests and Sepolia deployment have separate evidence records.
-\documentclass[11pt,a4paper]{report}
+\documentclass[12pt,a4paper]{report}
 \usepackage[a4paper,margin=1in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{lmodern,microtype,xcolor,hyperref,booktabs,array,tabularx,fancyhdr,listings,graphicx,amssymb,amsmath,caption,enumitem,tikz}
+\usepackage{lmodern,setspace,microtype,xcolor,hyperref,booktabs,array,tabularx,fancyhdr,listings,graphicx,amssymb,amsmath,caption,enumitem,tikz}
 \usetikzlibrary{arrows.meta}
 \definecolor{linkblue}{RGB}{0,76,153}
 \definecolor{codegray}{RGB}{246,247,249}
+\definecolor{plotblue}{RGB}{0,78,125}
+\definecolor{refundcolor}{RGB}{182,112,35}
 \hypersetup{colorlinks=true,linkcolor=linkblue,urlcolor=linkblue,citecolor=linkblue,pdftitle={StreamPay: CSIT5760 Final Project Report},pdfauthor={MA, Yuechen}}
 \pagestyle{fancy}\fancyhf{}\lhead{CSIT5760}\rhead{StreamPay Final Project Report}\cfoot{\thepage}\setlength{\headheight}{15pt}
-\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+\setstretch{1.12}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\setlength{\intextsep}{14pt plus 3pt minus 2pt}
+\setlength{\textfloatsep}{18pt plus 3pt minus 2pt}
+\captionsetup{font=small,skip=6pt}
+\captionsetup[table]{position=above,hypcap=false}
 \setlist{nosep,leftmargin=*}
 \renewcommand{\arraystretch}{1.12}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
@@ -19,23 +26,25 @@
 \setcounter{tocdepth}{0}
 \makeatletter
 \renewcommand*\l@chapter{\@dottedtocline{0}{0pt}{1.7em}}
-\renewcommand{\@makechapterhead}[1]{\vspace*{2pt}{\parindent\z@\raggedright\normalfont\large\bfseries\ifnum\c@secnumdepth>\m@ne\@chapapp\space\thechapter\quad\fi #1\par\nobreak\vskip 12pt}}
-\renewcommand{\@makeschapterhead}[1]{\vspace*{2pt}{\parindent\z@\raggedright\normalfont\large\bfseries #1\par\nobreak\vskip 12pt}}
+\renewcommand\section{\@startsection{section}{1}{\z@}{-2.25ex\@plus-.4ex\@minus-.2ex}{1.1ex\@plus.2ex}{\normalfont\Large\bfseries}}
+\renewcommand{\@makechapterhead}[1]{\vspace*{8pt}{\parindent\z@\raggedright\normalfont\LARGE\bfseries\ifnum\c@secnumdepth>\m@ne\@chapapp\space\thechapter\quad\fi #1\par\nobreak\vskip 14pt}}
+\renewcommand{\@makeschapterhead}[1]{\vspace*{8pt}{\parindent\z@\raggedright\normalfont\LARGE\bfseries #1\par\nobreak\vskip 14pt}}
 \makeatother
 \lstdefinelanguage{Solidity}{keywords={pragma,solidity,contract,is,using,for,enum,struct,error,event,address,uint256,bool,bytes,memory,storage,public,private,external,internal,view,pure,immutable,constructor,function,returns,return,if,else,revert,emit,true,false},sensitive=true,comment=[l]{//},morecomment=[s]{/*}{*/},morestring=[b]"}
 \lstset{basicstyle=\ttfamily\footnotesize,backgroundcolor=\color{codegray},frame=single,breaklines=true,columns=fullflexible,showstringspaces=false,aboveskip=6pt,belowskip=5pt,captionpos=b}
 \renewcommand{\bibname}{References}
 \begin{document}
+\raggedbottom
 \hypersetup{pageanchor=false}
 \begin{titlepage}
 \centering
-\vspace*{1cm}
-{\Large\bfseries CSIT5760\par}
-\vspace{0.2cm}
-{\large Blockchain and Smart Contracts\par}
-\vspace{1.1cm}
-{\LARGE\bfseries Final Project Report\par}
-\vspace{0.5cm}
+\vspace*{1.4cm}
+{\LARGE\bfseries CSIT5760\par}
+\vspace{0.3cm}
+{\Large Blockchain and Smart Contracts\par}
+\vspace{1.2cm}
+{\Huge\bfseries Final Project Report\par}
+\vspace{0.3cm}
 {\Large Individual Project\par}
 \vfill
 \begin{tabularx}{\linewidth}{@{}P{3.4cm}Y@{}}
@@ -44,7 +53,7 @@
 \textbf{Student name} & MA, Yuechen\\
 \textbf{Student ID} & 21346213\\
 \textbf{Instructor} & Pritom Rajkhowa\\
-\textbf{Submission date} & 7 November 2026\\
+\textbf{Submission date} & 21 November 2026\\
 \textbf{Repository URL} & \url{https://github.com/ycma-nocturne/StreamPay}\\
 \textbf{Network} & Ethereum Sepolia\\
 \bottomrule
@@ -63,8 +72,7 @@ Local validation produced 50 passing tests: 34 contract cases and 16 deployment-
 
 Both contracts were deployed to Ethereum Sepolia and their source code was verified on Etherscan. The functional tests and settlement demonstration ran on the local Hardhat network.
 
-\section*{Contents}
-\makeatletter\@starttoc{toc}\makeatother
+\tableofcontents
 
 \clearpage
 \pagenumbering{arabic}
@@ -73,7 +81,7 @@ Both contracts were deployed to Ethereum Sepolia and their source code was verif
 StreamPay: Prepaid Token Streaming with Cancellation Settlement and Recipient Protection.
 
 \section{Objectives}
-The project implements prefunded streams with linear accrual, partial withdrawals and one-time cancellation. Local tests check claim limits, cancellation shares and liability backing. The test matrix and security review record local results. Etherscan verified the source of both Sepolia contracts.
+The project implements prefunded streams with linear accrual, partial withdrawals and one-time cancellation. The tests check withdrawal limits, cancellation shares and liability backing.
 
 Success means that no recipient can withdraw more than its accrued entitlement, cancellation cannot remove funds already accrued, and either party can collect its cancellation share independently. Tracked unpaid liabilities must remain covered by the escrow's token holdings under the supported token assumptions.
 
@@ -100,9 +108,9 @@ Figure~\ref{fig:architecture} shows how users query contracts and submit transac
 \node[box] (users) at (0,1.6) {Sender and recipient\\Wallets and Hardhat CLI};
 \node[box] (network) at (0,0) {Ethereum RPC\\Hardhat 31337 / Sepolia 11155111};
 \node[box] (escrow) at (0,-1.6) {\texttt{StreamPay}\\Accrual, claims and liabilities};
-\node[box] (token) at (-4.7,-1.6) {\texttt{MockStreamToken}\\Fixed ERC-20 supply};
-\node[box] (explorer) at (4.7,0) {Etherscan\\Source verification};
-\node[box] (offchain) at (-4.7,1.6) {Off-chain files\\Agreements and evidence};
+\node[box] (token) at (-5.55,-1.6) {\texttt{MockStreamToken}\\Fixed ERC-20 supply};
+\node[box] (explorer) at (5.55,0) {Etherscan\\Source verification};
+\node[box] (offchain) at (-5.55,1.6) {Off-chain files\\Agreements and evidence};
 \draw[link] (users) -- (network);
 \draw[link] (network) -- (escrow);
 \draw[{Stealth[length=2mm]}-{Stealth[length=2mm]},line width=0.6pt] (escrow) -- (token);
@@ -138,16 +146,40 @@ Cancelled & Frozen accrual at cancellation; recipient and sender claims remain p
 \bottomrule
 \end{tabularx}
 
-Figure~\ref{fig:stream-workflow} shows the two settlement paths. Recipients can withdraw outstanding funds in either terminal state.
+Figure~\ref{fig:stream-workflow} shows how funding leads to the two settlement paths.
 
 \begingroup
 \centering
-\captionsetup{font=footnotesize,skip=4pt,hypcap=false}
-\IfFileExists{../proposal/StreamPay_Workflow.tikz}
-  {\input{../proposal/StreamPay_Workflow.tikz}}
-  {\input{proposal/StreamPay_Workflow.tikz}}
+\captionsetup{hypcap=false}
+\begin{tikzpicture}[
+  workflow node/.style={
+    draw=black!70, rounded corners=1.3pt, line width=0.45pt,
+    align=center, text width=32mm, inner xsep=3pt, inner ysep=3pt,
+    font=\footnotesize
+  },
+  workflow arrow/.style={-{Stealth[length=1.9mm,width=1.35mm]}, line width=0.6pt}
+]
+  \node[workflow node, fill=black!5] (fund) at (-5.65,0)
+    {Approve then create\\Lock deposit \(D\)};
+  \node[workflow node] (accrue) at (0,0.62)
+    {Uncancelled stream\\Accrual continues};
+  \node[workflow node] (cancel) at (0,-0.62)
+    {Sender cancels\\Freeze \(V(c)\)};
+  \node[workflow node] (normal) at (5.65,0.62)
+    {Recipient withdraws\\accrued tokens};
+  \node[workflow node, fill=black!5] (claims) at (5.65,-0.62)
+    {Separate claims\\Both parties};
+
+  \coordinate (split) at (-2.825,0);
+  \draw[line width=0.6pt] (fund.east) -- (split);
+  \fill (split) circle[radius=0.75pt];
+  \draw[workflow arrow] (split) |- (accrue.west);
+  \draw[workflow arrow] (split) |- (cancel.west);
+  \draw[workflow arrow] (accrue.east) -- (normal.west);
+  \draw[workflow arrow] (cancel.east) -- (claims.west);
+\end{tikzpicture}
 \par
-\captionof{figure}{Funding, accrual and cancellation settlement.}
+\captionof{figure}{Funding and settlement. If the sender cancels at \(c<e\), the recipient can claim \(V(c)-W\) and the sender can claim \(D-V(c)-R\).}
 \label{fig:stream-workflow}
 \endgroup
 
@@ -170,7 +202,7 @@ Compilation enables 200 optimizer runs and targets Shanghai. OpenZeppelin's ERC-
 \section{Contract Functionality}
 \texttt{MockStreamToken} mints $1{,}000{,}000\times10^6$ raw units once to its deployer and exposes six decimals, so 1 SPAY is $10^6$ raw units. It has no public mint function. \texttt{StreamPay} receives the single immutable token address at construction and has no term-editing or rescue interface.
 
-For deposit $D$, start $s$, end $e$ and current timestamp $t$, uncancelled cumulative entitlement is
+For deposit $D$, start $s$, scheduled end $e$ and block timestamp $t$, cumulative entitlement follows Equation~\eqref{eq:accrual}.
 \begin{equation}
 V(t)=\begin{cases}
 0,&t\leq s,\\
@@ -179,26 +211,101 @@ D,&t\geq e.
 \end{cases}
 \label{eq:accrual}
 \end{equation}
-Cancellation at block time $c$ freezes $V_c=V(c)$. With cumulative withdrawals $W$ and refunds $R$, recipient availability is $V_c-W$ and sender availability is $D-V_c-R$. Before cancellation, recipient availability is $V(t)-W$ and sender availability is zero. \texttt{Math.mulDiv} computes full-precision integer accrual~\cite{oz}. At $e$, the full deposit accrues.
+\texttt{Math.mulDiv} computes integer accrual~\cite{oz}. Figure~\ref{fig:accrual-freeze} shows the split at a cancellation block $c$ between $s$ and $e$.
 
-For each stream, $D=W+R+L$, where $L$ is its remaining liability. Under the supported standard-token model, holdings $H$ satisfy $H\geq\sum L$. Creation increases liabilities by the exact deposit; each successful payout decreases them by its amount. Cancellation only partitions liabilities. Unsolicited transfers create unclaimable surplus and no stream entitlement.
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[x=1.20cm,y=1.00cm,font=\small,>=Stealth]
+  \draw[black!25] (0,2.5) -- (8.9,2.5);
+  \draw[black!25] (0,1) -- (3.8,1);
+  \draw[black!35,dotted] (3.8,0) -- (3.8,1);
+  \draw[black!35,dotted] (8,0) -- (8,2.5);
+  \draw[->,black!75] (0,0) -- (9.7,0) node[below right,inner sep=2pt] {$t$};
+  \draw[->,black!75] (0,0) -- (0,2.98);
+  \node[anchor=south west,inner sep=1pt] at (0,3.04) {Cumulative recipient entitlement};
+  \node[left=2pt] at (0,0) {$0$};
+  \node[left=2pt] at (0,1) {$V_c$};
+  \node[left=2pt] at (0,2.5) {$D$};
+  \foreach \position/\symbol in {1/s,3.8/c,8/e}{
+    \draw[black!75] (\position,0.05) -- (\position,-0.05);
+    \node[below=3pt] at (\position,0) {$\symbol$};
+  }
+  \draw[plotblue,line width=1.25pt] (0,0) -- (1,0) -- (3.8,1) -- (8.9,1);
+  \draw[black!65,densely dashed,line width=0.9pt] (3.8,1) -- (8,2.5) -- (8.9,2.5);
+  \fill[plotblue] (3.8,1) circle[radius=2pt];
+  \node[plotblue,anchor=south] at (6.37,1.04) {Frozen accrual};
+  \node[black!78,anchor=south] at (6.15,2.35) {Uncancelled schedule};
+  \draw[black!75,{Stealth[length=1.6mm]}-{Stealth[length=1.6mm]}] (9.05,1) -- (9.05,2.5)
+    node[midway,right=3pt] {$D-V_c$};
+\end{tikzpicture}
+\caption{Schematic of cumulative entitlement. Cancellation freezes $V_c=V(c)$. The bracket marks the sender's total refund allocation.}
+\label{fig:accrual-freeze}
+\end{figure}
 
+With prior withdrawals $W$ and refunds $R$, the available claims after cancellation are $V_c-W$ for the recipient and $D-V_c-R$ for the sender. Before cancellation, only $V(t)-W$ is available. Each stream maintains $D=W+R+L$, where $L$ is its unpaid liability, and token holdings $H$ cover $\sum L$. Direct donations add surplus without increasing claims.
+
+\clearpage
 \section{Interface Description}
-\begingroup\small
-\begin{tabularx}{\linewidth}{@{}P{3.6cm}P{2cm}Y@{}}
+Table~\ref{tab:stream-write} lists the write calls. Amounts use raw units and schedules use Unix timestamps. An unknown ID reverts with \texttt{StreamNotFound}. Failed token transfers roll back creation or payout.
+
+\noindent\begin{minipage}{\linewidth}
+\small
+\captionof{table}{State-changing calls in \texttt{StreamPay}.}
+\label{tab:stream-write}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\linewidth}{@{}P{4.10cm}P{1.60cm}Y Y@{}}
 \toprule
-Interface & Caller & Effect / principal rejection\\\midrule
-\texttt{createStream}\newline\texttt{(recipient, amount,}\newline\texttt{start, end)} & Any sender & Returns the ID and emits \texttt{StreamCreated}. Requires exact funding, a recipient distinct from zero, the sender and escrow, a positive amount and $\text{now}\leq s<e$.\\
-\texttt{withdraw(id, amount)} & Recipient & Pays recipient and emits \texttt{Withdrawn}; rejects unknown ID, wrong role, zero or excessive claim.\\
-\texttt{cancel(id)} & Sender & Freezes accrual and emits \texttt{Cancelled}. Claims settle separately. Rejects unknown IDs, wrong callers, repeated cancellation and calls at or after the end.\\
-\texttt{withdrawRefund(id)} & Sender & Pays the available refund and emits \texttt{RefundWithdrawn}. Rejects unknown IDs, wrong callers and unavailable refunds.\\
-\texttt{getStream}, \texttt{accrued}, \texttt{withdrawable}, \texttt{refundable}, \texttt{status} & Anyone & Take a stream ID and return its record, accrued amount, available withdrawal, available refund or state, respectively. Unknown IDs revert with \texttt{StreamNotFound}.\\
-\texttt{token}, \texttt{nextStreamId}, \texttt{totalLiabilities} & Anyone & Take no arguments and return the token address, next stream ID or sum of unpaid liabilities, respectively.\\
+Call & Caller & Result and event & Principal reverts\\\midrule
+\texttt{createStream}\newline\texttt{(recipient, amount,}\newline\texttt{start, end)}
+  & Any sender
+  & Locks the deposit, increases liabilities, returns the new ID and emits \texttt{StreamCreated}.
+  & Invalid recipient, zero amount, invalid schedule or failed exact funding.\\
+\addlinespace
+\texttt{withdraw(id, amount)}
+  & Recipient
+  & Pays the requested amount, reduces liabilities and emits \texttt{Withdrawn}.
+  & Wrong caller, zero amount or amount above the available entitlement.\\
+\addlinespace
+\texttt{cancel(id)}
+  & Sender
+  & Freezes accrual, sets the cancellation flag and emits \texttt{Cancelled}.
+  & Wrong caller, already cancelled, or block time at or after the end.\\
+\addlinespace
+\texttt{withdrawRefund(id)}
+  & Sender
+  & Pays the entire outstanding refund, reduces liabilities and emits \texttt{RefundWithdrawn}.
+  & Wrong caller or no refund available.\\
 \bottomrule
-\end{tabularx}\endgroup
+\end{tabularx}
+\end{minipage}
 
-\texttt{StreamCreated} records the ID, parties, deposit and schedule. Custom errors distinguish invalid input, funding mismatch, access violations, unavailable claims and invalid lifecycle actions. Funding precedes ID allocation. A failed token transfer reverts funding or payout and rolls back any accounting changes. \texttt{MockStreamToken} exposes the OpenZeppelin ERC-20 interface for balances, allowances, approvals and transfers~\cite{oz}.
+\texttt{createStream} requires $\mathrm{now}\leq s<e$ and a recipient distinct from zero, the sender and the escrow. \texttt{cancel} makes no transfer and leaves total liabilities unchanged.
 
+Anyone can call the views in Table~\ref{tab:stream-read}. The five stream queries take an ID. The last three entries are public getters with no arguments.
+
+\noindent\begin{minipage}{\linewidth}
+\small
+\captionof{table}{Read-only calls in \texttt{StreamPay}.}
+\label{tab:stream-read}
+\begin{tabularx}{\linewidth}{@{}P{4.05cm}Y@{}}
+\toprule
+Call & Return value\\\midrule
+\texttt{getStream(id)} & Stored stream record.\\
+\texttt{accrued(id)} & Cumulative recipient entitlement.\\
+\texttt{withdrawable(id)} & Remaining amount the recipient can claim.\\
+\texttt{refundable(id)} & Remaining sender refund. Returns zero before cancellation.\\
+\texttt{status(id)} & Derived accrual state. Ended streams may have unpaid claims.\\
+\addlinespace
+\texttt{token()} & Immutable token address.\\
+\texttt{nextStreamId()} & ID for the next stream.\\
+\texttt{totalLiabilities()} & Sum of unpaid liabilities across streams.\\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+
+\texttt{MockStreamToken} exposes OpenZeppelin's ERC-20 interface for balances, allowances, approvals and transfers~\cite{oz}.
+
+\clearpage
 \section{Important Implementation Decisions}
 Pull claims keep the two parties independent: a failed recipient transfer cannot prevent sender cancellation or its refund, and a failed refund cannot prevent the recipient's earned payment. Withdrawal accounting changes before external transfers, and all four mutations use \texttt{nonReentrant}. Exact incoming balance checks reject short or decreasing receipts. The transfer handling follows ERC-20 and Solidity guidance~\cite{erc20,solidity}.
 
@@ -237,6 +344,7 @@ The first excerpt fixes cancellation entitlement before considering current time
 \section{Deployment Configuration}
 Both contracts were deployed to Sepolia on 16 November 2026 UTC. The confirmed receipts and build settings are recorded in \file{deployment/sepolia.json}.
 
+\begingroup\small
 \begin{tabularx}{\linewidth}{@{}P{4.1cm}Y@{}}
 \toprule
 Setting & Recorded configuration / status\\\midrule
@@ -248,11 +356,11 @@ Wallet / signer & Hardhat's local account signer with ethers 6.14.0.\\
 Deployer & \path{0x1844c9D82E30a4DE34b4891DbD37Ac51Ba4FF8db}\\
 Constructor arguments & \texttt{MockStreamToken} takes none. \texttt{StreamPay} takes the token address shown below.\\
 \bottomrule
-\end{tabularx}
+\end{tabularx}\endgroup
 
 \section{Deployment Information}
 \begingroup\small
-\begin{tabularx}{\linewidth}{@{}P{3.1cm}Y P{2.65cm}@{}}
+\begin{tabularx}{\linewidth}{@{}P{3.1cm}Y P{3.35cm}@{}}
 \toprule
 Contract & Sepolia address & Block and receipt\\\midrule
 \texttt{MockStreamToken} & \path{0x61928f9a74879CeE86D2434D65619E18E8c40912} & 12149158, \href{https://sepolia.etherscan.io/tx/0x3f80fea19978d222d5d196fe436abc3c2fd27abddcecdec1caa4a95932c909db}{receipt}\\
@@ -260,40 +368,52 @@ Contract & Sepolia address & Block and receipt\\\midrule
 \bottomrule
 \end{tabularx}\endgroup
 
-The deployment blocks are timestamped 18:40:36~UTC for \texttt{MockStreamToken} and 18:40:48~UTC for \texttt{StreamPay} on 16 November 2026. Appendix~\ref{app:sepolia-evidence} lists the full transaction hashes. Local settlement results appear in Chapter~\ref{ch:local-tests}.
+The token was deployed at 18:40:36 UTC and the escrow at 18:40:48 UTC on 16 November 2026. Appendix~\ref{app:sepolia-evidence} gives the full transaction hashes.
 
 \section{Etherscan Verification}
 \label{sec:etherscan-verification}
-\texttt{pnpm verify:sepolia} checked the build settings, source hashes, complete deployed bytecode and the escrow's \texttt{token()} binding. Hardhat Verify 2.1.3 submitted the compiler's full standard JSON input, the Solidity release identifier \path{v0.8.28+commit.7893614a} and each contract's encoded constructor arguments~\cite{verification}. The contracts use no externally linked libraries.
+\texttt{pnpm verify:sepolia} checked the build settings, source hashes, deployed bytecode and escrow token address. Hardhat Verify submitted the standard JSON input, compiler identifier \path{v0.8.28+commit.7893614a} and encoded constructor arguments~\cite{verification}. The contracts use no externally linked libraries.
 
-Etherscan returned \texttt{Pass - Verified} for both \href{https://sepolia.etherscan.io/address/0x61928f9a74879CeE86D2434D65619E18E8c40912#code}{\texttt{MockStreamToken}} and \href{https://sepolia.etherscan.io/address/0x608E8C677C9Ea162dd776E9a35c4c3eE8323188A#code}{\texttt{StreamPay}}. Verification was recorded at 18:46:32~UTC and 18:49:22~UTC on 16 November 2026. The independent check in \file{deployment/sepolia-evidence.json} matched the transaction receipts, deployed bytecode and Etherscan standard JSON input.
+Verification was recorded on 16 November 2026 at 18:46:32 UTC for \href{https://sepolia.etherscan.io/address/0x61928f9a74879CeE86D2434D65619E18E8c40912#code}{\texttt{MockStreamToken}} and 18:49:22 UTC for \href{https://sepolia.etherscan.io/address/0x608E8C677C9Ea162dd776E9a35c4c3eE8323188A#code}{\texttt{StreamPay}}. Receipt, bytecode and compiler input checks are in \file{deployment/sepolia-evidence.json}.
 
 \chapter{Test Cases and Validation}
 \label{ch:local-tests}
 \section{Testing Environment}
-Tests ran on Hardhat 2.26.3 with Mocha 10.8.2 and Chai 4.5.0 on local chain 31337. They used separate sender, recipient and unrelated accounts, controlled timestamps, raw integer token amounts and a BigInt reference model. \file{evidence/test-results.json} records 50 passes, zero failures and zero pending tests: six creation cases, twelve settlement cases, sixteen adversarial/accounting cases and sixteen tooling cases.
+Tests used Hardhat 2.26.3 on local chain 31337 with Mocha 10.8.2 and Chai 4.5.0. The fixtures use separate accounts, controlled timestamps, raw token units and a BigInt reference model. All 50 tests passed: 6 creation, 12 settlement, 16 adversarial and accounting, and 16 tooling cases.
 
-The ordinary sequence is \texttt{pnpm compile}, \texttt{pnpm test:record}, \texttt{pnpm matrix} and \texttt{pnpm demo}. Test records retain source and test hashes, expected results and observed outcomes~\cite{guideline}. The full matrix is in \file{docs/test-matrix.md}.
+Run \texttt{pnpm compile}, \texttt{pnpm test:record}, \texttt{pnpm matrix} and \texttt{pnpm demo}. The matrix in \file{docs/test-matrix.md} records expected and observed outcomes. The raw results retain source and test hashes~\cite{guideline}.
 
 \section{Test-Case Summary}
-\begingroup\small
-\begin{tabularx}{\linewidth}{@{}P{1.4cm}P{4.1cm}Y@{}}
+Table~\ref{tab:validation-cases} summarizes representative cases. All listed cases passed.
+
+\noindent\begin{minipage}{\linewidth}
+\small
+\captionof{table}{Representative validation cases.}
+\label{tab:validation-cases}
+\begin{tabularx}{\linewidth}{@{}P{2.05cm}P{4.55cm}Y@{}}
 \toprule
-ID / result & Preconditions and input & Expected and actual outcome\\\midrule
-T-C03 / pass & Deposit 100 over 10 seconds; query $s-1,s,s+1,e-1,e$. & Both expected and observed accrual: $0,0,10,90,100$; statuses Scheduled, Active, Active, Active, Ended.\\
-T-S03 / pass & Deposit 100 over 100 seconds; zero claim, then claim 22 at offset 21. & \texttt{InvalidAmount}, then insufficient entitlement $22>21$; observed withdrawals 0 and liability 100.\\
-T-S10/11 / pass & Deposit 100; paid 10; cancel at offset 40; test each claim order. & Both orders ended with recipient total 40, refund 60, liability 0 and Cancelled status.\\
-T-S12 / pass & Deposit 7 over 5 seconds; offsets $0,1,2,4,5$; final claim. & Expected/observed $0,1,2,5,7$; all seven paid, no residual liability.\\
-T-A04/05 / pass & Cancel 100 at offset 40; fail one party's transfer. & Failed operation rolled back; the other party independently received its 60 refund or 40 earned share.\\
-T-A08--12 / pass & Authorized token callbacks attempt nested mutations; one propagates failure. & Guard selector \texttt{0x3ee5aeb5}; no duplicate effects; propagated failure restored both streams and balances.\\
-T-A13 / pass & Four deposits total 117; donation 31; interleaved claims/cancellation. & Recipient 57, refund 60, liabilities 0; donation 31 remained surplus.\\
+Case & Preconditions and input & Expected and observed outcome\\\midrule
+T-C03 & Deposit 100 over 10 s. Query $s-1,s,s+1,e-1,e$. & Accrual $0,0,10,90,100$. States progress from Scheduled to Active to Ended.\\
+T-S03 & Deposit 100 over 100 s. Claim zero, then 22 at offset 21. & Zero and excessive claims revert. Withdrawals stay at 0 and liability stays at 100.\\
+T-S10/11 & Deposit 100, pay 10, cancel at offset 40. Try both claim orders. & Both orders yield 40 total to the recipient, 60 refund, zero liability and Cancelled status.\\
+T-S12 & Deposit 7 over 5 s. Query at $0,1,2,4,5$ and claim. & Accrual $0,1,2,5,7$. All seven units are paid.\\
+T-A04/05 & Cancel 100 at offset 40. Fail one party's transfer. & The failed transaction rolls back. The other party receives the 60 refund or 40 earned share.\\
+T-A08--12 & Attempt nested mutations with token callbacks. Propagate one failure. & The guard reverts with \texttt{0x3ee5aeb5}. Propagating the failure restores both streams and balances.\\
+T-A13 & Four deposits total 117. Donate 31 and interleave claims and cancellation. & Recipient 57, refund 60, liability 0, surplus 31.\\
 \bottomrule
-\end{tabularx}\endgroup
+\end{tabularx}
+\end{minipage}
 
-Other executed cases cover invalid recipients/schedules/IDs, allowance and balance failure, exact funding, pre-start and exact-start cancellation, repeated cancellation/refunds, failure rollback, and a one-unit terminal payout. T-A07 checks integer accrual for a deposit of $2^{255}+7$.
+Other cases cover invalid inputs, failed funding, cancellation boundaries, repeat actions, rollback and a one-unit payout. T-A07 checks accrual on a deposit of $2^{255}+7$.
 
-The deterministic campaigns compare intended actions, exact expected errors, balances, storage and invariants after every step. Each seed executed 80 actions across four streams, for 240 actions in total. The balance covers outstanding liabilities at the end of each campaign.
+\clearpage
+\section{Test Evidence}
+The deterministic campaigns compare expected errors, balances, storage and invariants after every action. Each seed ran 80 actions across four streams. Table~\ref{tab:campaigns} shows the final balances.
 
+\noindent\begin{minipage}{\linewidth}
+\small
+\captionof{table}{Final balances for the three deterministic campaigns.}
+\label{tab:campaigns}
 \begin{tabularx}{\linewidth}{@{}P{2.5cm}r r r Y@{}}
 \toprule
 Seed & Actions & Liability & Holdings & Observed surplus\\\midrule
@@ -302,10 +422,59 @@ Seed & Actions & Liability & Holdings & Observed surplus\\\midrule
 21346213 & 80 & 77 & 196 & 119\\
 \bottomrule
 \end{tabularx}
+\end{minipage}
 
-\section{Test Evidence}
-The local demonstration funded streams of 1,000,000 and 700,000 raw units. At the first checkpoint, accrual was 200,000 while the recipient balance remained zero, demonstrating that a query does not transfer tokens. The normal stream paid 400,000 and then 600,000. Cancellation at 40\% of the second stream froze a 280,000 recipient share and 420,000 refund. Final recipient balance was 1,280,000; escrow balance and liabilities were zero. Events and transaction receipts support these observations in \file{evidence/local-demo.json}.
+Stream 1 accrued 200,000 raw units before any transfer, then paid 400,000 and 600,000. Figure~\ref{fig:cancelled-settlement} follows stream 2. The final recipient balance was 1,280,000, and escrow balance and liabilities were zero.
 
+\noindent\begin{minipage}{\linewidth}
+\centering
+\captionsetup{hypcap=false}
+% Heights are in 10^3 raw units. Allocations are derived from the local demo events.
+\begin{tikzpicture}[x=1.82cm,y=0.0043cm,font=\small,>=Stealth]
+  \draw[black!23] (0,700) -- (6.4,700);
+  \draw[->,black!75] (0,0) -- (0,792);
+  \draw[black!75] (0,0) -- (6.4,0);
+  \node[anchor=south west,inner sep=1pt] at (0,802) {Stream 2 deposit allocation ($10^3$ raw units)};
+  \node[left=2pt] at (0,0) {0};
+  \node[left=2pt] at (0,700) {700};
+  \foreach \xcoord/\paid/\refund/\unpaid/\block/\tx in {
+      1/0/0/700/5/{Create},
+      2.6/0/0/700/9/{Cancel},
+      4.2/280/0/420/10/{Recipient claim},
+      5.8/280/420/0/11/{Sender refund}} {
+    \pgfmathsetmacro{\leftedge}{\xcoord - 0.57}
+    \pgfmathsetmacro{\rightedge}{\xcoord + 0.57}
+    \pgfmathsetmacro{\refundtop}{\paid + \refund}
+    \ifdim\unpaid pt>0pt
+      \draw[fill=black!8,draw=black!55] (\leftedge,\refundtop) rectangle (\rightedge,700);
+      \pgfmathsetmacro{\labely}{\refundtop + \unpaid/2}
+      \node[align=center,font=\footnotesize] at (\xcoord,\labely)
+        {Unpaid\\\unpaid};
+    \fi
+    \ifdim\paid pt>0pt
+      \draw[fill=plotblue!86,draw=black!64] (\leftedge,0) rectangle (\rightedge,\paid);
+      \pgfmathsetmacro{\labely}{\paid/2}
+      \node[align=center,text=white,font=\footnotesize] at (\xcoord,\labely)
+        {Recipient\\paid \paid};
+    \fi
+    \ifdim\refund pt>0pt
+      \draw[fill=refundcolor!30,draw=black!64] (\leftedge,\paid) rectangle (\rightedge,\refundtop);
+      \pgfmathsetmacro{\labely}{\paid + \refund/2}
+      \node[align=center,font=\footnotesize] at (\xcoord,\labely)
+        {Refunded\\\refund};
+    \fi
+    \node[align=center,anchor=north,font=\footnotesize,inner sep=3pt] at (\xcoord,0)
+      {\tx\\Block \block};
+  }
+\end{tikzpicture}
+\captionof{figure}{Stream 2 accounting on local Hardhat chain 31337. Cancellation at 40\% fixes the two claims. The unpaid amount falls as each party collects its share. The allocations use events in \texttt{evidence/local-demo.json}.}
+\label{fig:cancelled-settlement}
+\end{minipage}
+
+\noindent\begin{minipage}{\linewidth}
+\small
+\captionof{table}{Gas used by the local demonstration.}
+\label{tab:local-gas}
 \begin{tabularx}{\linewidth}{@{}Y r Y r@{}}
 \toprule
 Local operation & Gas used & Local operation & Gas used\\\midrule
@@ -316,12 +485,11 @@ Final withdrawal & 65394 & Cancellation & 80385\\
 Cancelled recipient claim & 78238 & Sender refund & 68524\\
 \bottomrule
 \end{tabularx}
-
-The table reports gas used by the local transactions.
+\end{minipage}
 
 \chapter{Smart Contract Security Audit}
 \section{Audit Scope and Methodology}
-The assessed application scope is \file{contracts/StreamPay.sol} and \file{contracts/MockStreamToken.sol}, with deployment and verification scripts reviewed as supporting tooling. The review used Slither 0.11.3, source inspection, and local contract and tooling tests.
+The review covered \texttt{StreamPay.sol}, \texttt{MockStreamToken.sol}, and the deployment and verification scripts. It combined Slither 0.11.3, source inspection and local tests.
 
 Slither analyzed 17 compiled contracts with 100 detectors. After filtering dependencies and test fixtures, it reported five Low findings and one Informational finding. The analysis command and the interpretation are in \file{audit/security-review.md}.
 
@@ -341,9 +509,9 @@ The deployment tooling review identified three findings rated Important.
 \begin{tabularx}{\linewidth}{@{}P{1.2cm}Y Y@{}}
 \toprule
 ID & Finding / impact / affected area & Remediation / retest / status\\\midrule
-R1 & A self-consistent manifest and observed-code hash did not bind runtime code to compiled source; unrelated code could pass provenance validation. Deployment library and consumers were affected. & Check compiled input/current sources and settings; reconstruct every immutable-token occurrence and compare exact runtime; independently query \texttt{token()}. T-D11/T-D16 reject unrelated runtime or wrong binding. Closed in scoped re-review.\\
-R2 & Metadata RPC failure could discard an already confirmed receipt, weakening recovery and deployment evidence. Deployment orchestration was affected. & Persist confirmed address/hash/block first; enrich later and retain \texttt{metadataStatus=incomplete} on failure. T-D12/T-D14 exercise persistence and actual orchestration. Closed in scoped re-review.\\
-R3 & Retrying public deployment could overwrite prior records and lose evidence of an earlier partial run. Deployment orchestration was affected. & Refuse prior public records before any factory/broadcast; permit only the empty deferred marker. T-D13/T-D15 preserve existing bytes and observe zero broadcasts. Closed in scoped re-review.\\
+R1 & Runtime provenance checks could accept unrelated bytecode with a matching manifest hash. & Compare build inputs, reconstruct every immutable occurrence and query \texttt{token()}. T-D11/T-D16 passed. Closed.\\
+R2 & A metadata RPC failure could discard a confirmed deployment receipt. & Save address, hash and block before fetching metadata. Mark failed metadata reads incomplete. T-D12/T-D14 passed. Closed.\\
+R3 & Retrying a public deployment could overwrite an earlier receipt. & Refuse overwrites before broadcasting, with an exception for the empty deferred marker. T-D13/T-D15 passed. Closed.\\
 \bottomrule
 \end{tabularx}\endgroup
 
@@ -393,7 +561,9 @@ A signing screen could use a wallet connection and the existing read functions o
 See \file{contracts/MockStreamToken.sol} and \file{contracts/StreamPay.sol} for the complete source and license notices. Section~\ref{sec:etherscan-verification} links to both verified sources. Source hashes accompany the tests, local demonstration and Sepolia deployment records.
 
 \chapter{Deployment Scripts and Configuration}
-\file{hardhat.config.cjs}, \file{package.json} and \file{pnpm-lock.yaml} define the pinned build. \file{scripts/deploy.cjs}, \file{scripts/verify.cjs}, \file{scripts/interact.cjs} and \file{scripts/lib/deployment.cjs} implement the operational path. The README gives compile, test, local interaction and Sepolia commands. Scripts read credentials from the local environment.
+\begingroup\raggedright
+The build is pinned in \file{hardhat.config.cjs}, \file{package.json} and \file{pnpm-lock.yaml}. The operational scripts are \file{scripts/deploy.cjs}, \file{scripts/verify.cjs}, \file{scripts/interact.cjs} and \file{scripts/lib/deployment.cjs}. The README gives build, test and interaction commands. Scripts read credentials from the local environment.\par
+\endgroup
 
 \chapter{Test Code and Selected Outputs}
 \begingroup\raggedright
@@ -402,12 +572,13 @@ The files \file{creation.test.cjs}, \file{settlement.test.cjs}, \file{adversaria
 \chapter{Security-Analysis Output}
 \file{audit/slither.json} contains the analyzer output. \file{audit/security-review.md} records the command, findings and fixes. Cases T-D11 through T-D16 in \file{docs/test-matrix.md} record the tooling retests.
 
+\newpage
 \chapter{Etherscan and Transaction Evidence}
 \label{app:sepolia-evidence}
 \file{deployment/sepolia.json} records the deployment receipts, runtime code hashes, verification responses and verified-source URLs. \file{deployment/sepolia-evidence.json} records the independent receipt, bytecode and source checks. The hashes below link to the Sepolia transactions on Etherscan.
 
-\begingroup\small
-\begin{tabularx}{\linewidth}{@{}P{3.1cm}Y@{}}
+\begingroup\footnotesize
+\begin{tabularx}{\linewidth}{@{}P{2.9cm}Y@{}}
 \toprule
 Contract & Sepolia address and deployment transaction hash\\\midrule
 \texttt{MockStreamToken} & \path{0x61928f9a74879CeE86D2434D65619E18E8c40912}\newline\href{https://sepolia.etherscan.io/tx/0x3f80fea19978d222d5d196fe436abc3c2fd27abddcecdec1caa4a95932c909db}{\nolinkurl{0x3f80fea19978d222d5d196fe436abc3c2fd27abddcecdec1caa4a95932c909db}}\\
